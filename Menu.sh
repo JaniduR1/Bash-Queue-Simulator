@@ -25,14 +25,20 @@ MenuSel()
 		2) sh LIFO.sh;;
 
 		BYE)
-			echo "Do you really wanna exit (Y/N)"
-			read yes
-			if [ "$yes" = "Y" ] || [ "$confirm" = "y" ]; then
-                exit 0
-			else
-				Menu
-			fi
-			;;
+			while true; do
+				echo "Do you really wanna exit (Y/N)"
+				read check
+				check=$(echo $check | tr '[:lower:]' '[:upper:]') # https://phoenixnap.com/kb/linux-tr
+
+				if [ "$check" = "Y" ]; then
+					exit 0
+				elif [ "$check" = "N" ]; then
+					Menu
+					break
+				else
+					echo "That is not a valid choice. Please choose either 'Y' for yes or 'N' for No"
+				fi
+			done;;
 
 		*) echo "Invalid Selection"
 		sleep 1
