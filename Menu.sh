@@ -1,15 +1,30 @@
 #!/bin/sh
 
-#This is skel code
+loading_animation() {
+	clear
+	set -- "." "." "." "." "." "." "." "."
+	printf "Loading ["
+	for word in "$@"
+	do
+	printf "$word"
+	sleep 0.1
+	done
+	printf "]"
+	printf "\n"
+	sleep 0.3
+
+}
 
 #Menu Display & Select
 Menu()
 {
 	clear
-	echo "Hi $Uname, Make your selection or type bye to exit:" 
-	echo "1 for FIFO"
-	echo "2 for LIFO"
-	echo "BYE for exit"
+	loading_animation
+	clear
+	echo -e "\033[32mHi $Uname, Make your selection or type bye to exit:\033[0m" #https://gist.github.com/vratiu/9780109
+	echo -e "\033[34m1 for FIFO\033[0m"
+	echo -e "\033[34m2 for LIFO\033[0m"
+	echo -e "\033[31mBYE for exit\033[0m"
 	echo "Please Enter Selection:"
 	read Sel
 	MenuSel $Sel
