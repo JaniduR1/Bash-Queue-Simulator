@@ -24,6 +24,7 @@ Menu()
 	echo -e "\033[32mHi $Uname, Make your selection or type bye to exit:\033[0m" #https://gist.github.com/vratiu/9780109
 	echo -e "\033[34m1 for FIFO\033[0m"
 	echo -e "\033[34m2 for LIFO\033[0m"
+	echo -e "\033[34m3 for Admin\033[0m"
 	echo -e "\033[31mBYE for exit\033[0m"
 	echo "Please Enter Selection:"
 	read Sel
@@ -38,6 +39,7 @@ MenuSel()
 	case $(echo $1 | tr '[:lower:]' '[:upper:]') in
 		1) sh FIFO.sh;;
 		2) sh LIFO.sh;;
+		3) sh Admin.sh;;
 
 		BYE)
 			while true; do

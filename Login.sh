@@ -1,7 +1,5 @@
 #!/bin/sh
 
-UPP_DB="Usage.db"
-
 clear
 echo "Enter ur username"
 read username

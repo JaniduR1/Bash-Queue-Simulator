@@ -9,7 +9,21 @@
 
 CreateUser()
 {
-    echo "creating user..."
+    echo "Please enter a username (5 alphanumeric characters):"
+    read username
+
+    echo "Please enter a password for the user $username (5 alphanumeric characters):"
+    read -s password
+    echo "Please re-enter the password for the user $username:"
+    read -s confirmPassword
+
+    echo "Please enter a PIN for the user $username:"
+    read -s pin
+    echo "Please re-enter the PIN for the user $username:"
+    read -s confirmPIN
+
+    echo "$username,$password,$pin" >> "Usage.db"
+    echo "User $username added successfully."
 }
 
 DeleteUser()
@@ -22,3 +36,15 @@ UpdateUser()
     echo "updating user..."
 }
 
+echo "Admin Menu:"
+echo "1. Add user"
+echo "2. Delete user"
+echo "3. Update user password"
+read -p "Choose an option: " adminMenu
+
+case $adminMenu in
+    1) CreateUser;;
+    2) DeleteUser;;
+    3) UpdateUser;;
+    *) echo "Invalid option";;
+esac
