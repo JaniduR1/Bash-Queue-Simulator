@@ -15,16 +15,40 @@ loading_animation() {
 
 }
 
+exit_animation() {
+    clear
+    set -- "|" "/" "-" "\\"
+	printf "Exiting ["
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+        for spin in "$@"; do
+            printf "\b%s" "$spin"
+            sleep 0.1
+        done
+    done
+    printf "\b"
+    printf "]"
+    printf "\n"
+}
+
+#User information from Login page:
+username="$1"
+type="$2"
+
 #Menu Display & Select
 Menu()
 {
 	clear
 	loading_animation
 	clear
-	echo -e "\033[32mHi $Uname, Make your selection or type bye to exit:\033[0m" #https://gist.github.com/vratiu/9780109
+	echo -e "\033[32mHi $username, Make your selection or type bye to exit:\033[0m" #https://gist.github.com/vratiu/9780109
 	echo -e "\033[34m1 for FIFO\033[0m"
 	echo -e "\033[34m2 for LIFO\033[0m"
-	echo -e "\033[34m3 for Admin\033[0m"
+
+	#Checks Type (Admin or user)
+	if [ "$type" = "admin" ]; then
+        echo -e "\033[34m3 for Admin\033[0m"
+    fi
+
 	echo -e "\033[31mBYE for exit\033[0m"
 	echo "Please Enter Selection:"
 	read Sel
@@ -39,7 +63,14 @@ MenuSel()
 	case $(echo $1 | tr '[:lower:]' '[:upper:]') in
 		1) sh FIFO.sh;;
 		2) sh LIFO.sh;;
-		3) sh Admin.sh;;
+
+		#Checks Type (Admin or user)
+		3) 	if [ "$type" = "admin" ]; then
+                sh Admin.sh
+            else
+                echo "Error 500"
+                sleep 1
+            fi;;
 
 		BYE)
 			while true; do
@@ -48,6 +79,8 @@ MenuSel()
 				check=$(echo $check | tr '[:lower:]' '[:upper:]') # https://phoenixnap.com/kb/linux-tr
 
 				if [ "$check" = "Y" ]; then
+					exit_animation
+					sleep 0.5
 					exit 0
 				elif [ "$check" = "N" ]; then
 					Menu
@@ -64,9 +97,6 @@ MenuSel()
 }
 
 #Store username in global var
-echo "Please Enter Username"
-read Uname
-
 while true; do
 	Menu
 done

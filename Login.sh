@@ -6,8 +6,6 @@ read username
 
 echo "Enter your password"
 read -s password
-echo password
-
 
 Validation() {
     grep -q "^$username,$password," "Usage.db"
@@ -17,8 +15,9 @@ Validation() {
 if Validation; then
     echo "Login successful. Access granted."
     sleep 2
+    type=$(grep "^$username,$password," Usage.db | cut -d',' -f4)
+    ./Menu.sh "$username" "$type"
     clear
-    ./Menu.sh
 else
     echo "Login failed: Invalid username or password. Access denied."
     sleep 2

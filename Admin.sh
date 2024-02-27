@@ -9,10 +9,10 @@
 
 CreateUser()
 {
-    echo "Please enter a username (5 alphanumeric characters):"
+    echo "Please enter a username:"
     read username
 
-    echo "Please enter a password for the user $username (5 alphanumeric characters):"
+    echo "Please enter a password for the user $username:"
     read -s password
     echo "Please re-enter the password for the user $username:"
     read -s confirmPassword
@@ -22,7 +22,7 @@ CreateUser()
     echo "Please re-enter the PIN for the user $username:"
     read -s confirmPIN
 
-    echo "$username,$password,$pin" >> "Usage.db"
+    echo "$username,$password,$pin,user" >> "Usage.db"
     echo "User $username added successfully."
 }
 
