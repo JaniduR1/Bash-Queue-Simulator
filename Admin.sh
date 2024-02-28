@@ -23,6 +23,7 @@ CreateUser()
     read -s confirmPIN
 
     echo "$username,$password,$pin,user" >> "Usage.db"
+    #echo "$username,$password,$pin,user" | tee Usage.db > /dev/null
     echo "User $username added successfully."
 }
 

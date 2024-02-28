@@ -1,8 +1,16 @@
 #!/bin/sh
 
+var="simdata_janidu.job"
 
-echo "this is a place holder FOR LIFO"
-cat "$Random.txt" | tr
-sleep 3
+cat $var | cut -d "," -f 10
+cat $var | cut -d "," -f 9
+cat $var | cut -d "," -f 8
+cat $var | cut -d "," -f 7
+cat $var | cut -d "," -f 6
+cat $var | cut -d "," -f 5
+cat $var | cut -d "," -f 4
+cat $var | cut -d "," -f 3
+cat $var | cut -d "," -f 2
+cat $var | cut -d "," -f 1
 
-return 0
+sleep 2

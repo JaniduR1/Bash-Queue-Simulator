@@ -1,8 +1,4 @@
 #!/bin/sh
 
-echo "this is a place holder FOR FIFO"
-sleep 1
-cat Random.txt
+cat simdata_janidu.job
 sleep 5
-
-return 0
