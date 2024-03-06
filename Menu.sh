@@ -18,15 +18,14 @@ loading_animation() {
 exit_animation() {
     clear
     set -- "|" "/" "-" "\\"
-	printf "Exiting ["
-	for i in 1 2 3 4 5 6 7 8 9 10; do
+	printf "Exiting... "
+	for i in 1 2 3 4 5 6 7 8; do
         for spin in "$@"; do
             printf "\b%s" "$spin"
             sleep 0.1
         done
     done
     printf "\b"
-    printf "]"
     printf "\n"
 }
 
