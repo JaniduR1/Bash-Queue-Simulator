@@ -1,4 +1,5 @@
 #!/bin/sh
+source ./Funcutions.sh
 
 ###
 #This system will operate separately from the host systems (OS) username/ password system and will have separate username/password verification prior to the menu loading. 
@@ -7,103 +8,36 @@
 #Creating users/ deleting users can only be executed by the admin script, whilst changing the password can be done by both admin & user.
 ###
 
-CreateUser()
+
+AdminMenu()
 {
     clear
+	echo -e "\033[34m1 to add user\033[0m"
+	echo -e "\033[34m2 to delete user\033[0m"
+	echo -e "\033[34m3 to update a user password\033[0m"
 
-    ## Username Creation
-    while true; do
-        clear
-        echo "Please enter a username (must be 5 alphanumeric characters): "
-        read username
-
-        if echo "$username" | grep -Eq "^[a-zA-Z0-9]{5}$"; then # Checks if it doesnt match the given extended regex "E"
-            if grep -q "^$username," "UPP.db"; then # Checks if the username already exists
-                echo "The given username already exists, please change it!!!"
-                sleep 1.5
-            else
-                break
-            fi
-        else
-            echo "Username needs to be 5 alphanumeric characters!!!"
-            sleep 1.5
-        fi
-    done
-
-
-    ## Password Creation
-    while true; do
-        clear
-        echo "Please enter a 5 alphanumeric character password for the user $username:"
-        read -s password
-
-        if ! echo "$password" | grep -Eq "^[a-zA-Z0-9]{5}$"; then
-            echo "Password needs to be 5 alphanumeric characters!!!"
-            sleep 1.5
-            continue  # Loops back and asks for a valid password again
-        fi
-
-        echo "Please re-enter the password for the user $username:"
-        read -s confirmPassword
-
-        # Checks if passwords match
-        if [ "$password" != "$confirmPassword" ]; then
-            echo "Passwords don't match!!!"
-            sleep 1.5
-        else
-            break
-        fi
-    done
-
-
-    ## PIN Creation
-    while true; do
-        clear
-        echo "Please enter a PIN for the user $username:"
-        read -s pin
-
-        if ! echo "$pin" | grep -Eq "^[0-9]{3}$"; then
-            echo "PIN must be 3 digits!!!"
-            sleep 1.5
-            continue # Loops back and asks for a valid PIN again
-        fi
-
-        echo "Please re-enter the PIN for the user $username:"
-        read -s confirmPIN
-
-        if [ "$pin" != "$confirmPIN" ]; then
-            echo "PINs don't match!!!"
-            sleep 1.5
-        else
-            break
-        fi
-    done
-
-    echo "$username,$password,$pin,user" >> "UPP.db"
-    #echo "$username,$password,$pin,user" | tee UPP.db > /dev/null
-    echo "User $username created successfully."
-    return 0
+	echo -e "\033[31mBYE for exit\033[0m"
+	echo "Please Enter Selection:"
+	read selected
+	AdminMenuSelected $selected
 }
+# Bye even at login
 
-DeleteUser()
+AdminMenuSelected()
 {
-    echo "deleting user..."
+    case $(echo $1 | tr '[:lower:]' '[:upper:]') in
+		1) CreateUser;;
+		2) DeleteUser;;
+		3) ChangePassword;;
+
+		BYE) BYE;;
+
+		*) echo "Invalid Selection"
+		sleep 1
+		AdminMenu;;
+	esac
 }
 
-UpdateUser()
-{
-    echo "updating user..."
-}
-
-echo "Admin Menu:"
-echo "1. Add user"
-echo "2. Delete user"
-echo "3. Update user password"
-read -p "Choose an option: " adminMenu
-
-case $adminMenu in
-    1) CreateUser;;
-    2) DeleteUser;;
-    3) UpdateUser;;
-    *) echo "Invalid option";;
-esac
+while true; do
+	AdminMenu
+done

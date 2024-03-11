@@ -1,4 +1,5 @@
 #!/bin/sh
+source ./Funcutions.sh
 
 clear
 echo "Enter ur username"
@@ -7,16 +8,15 @@ read username
 echo "Enter your password"
 read -s password
 
-Validation() {
-    grep -q "^$username,$password," "UPP.db"
-    return $?
-}
+# Bye even at login
 
 if Validation; then
     echo "Login successful. Access granted."
     sleep 2
-    type=$(grep "^$username,$password," UPP.db | cut -d',' -f4)
-    ./Menu.sh "$username" "$type"
+    # Set these as global variable to access them throughout the different scripts
+    export type=$(grep "^$username,$password," UPP.db | cut -d',' -f4)
+    export username="$username"
+    ./Menu.sh
     clear
 else
     echo "Login failed: Invalid username or password. Access denied."
