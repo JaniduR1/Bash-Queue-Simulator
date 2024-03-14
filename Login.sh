@@ -8,6 +8,7 @@ read username
 echo "Enter your password"
 read -s password
 
+
 # Bye even at login
 
 if Validation; then
@@ -16,6 +17,10 @@ if Validation; then
     # Set these as global variable to access them throughout the different scripts
     export type=$(grep "^$username,$password," UPP.db | cut -d',' -f4)
     export username="$username"
+
+    # Sim Data Checker
+    simData
+
     ./Menu.sh
     clear
 else

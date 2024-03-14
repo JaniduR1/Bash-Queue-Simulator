@@ -7,14 +7,20 @@ Menu()
 	clear
 	#loadingAnimation
 	clear
+	# echo "$type"
+	# sleep 5
+	# clear
 	echo -e "\033[32mHi $username, Make your selection or type bye to exit:\033[0m" #https://gist.github.com/vratiu/9780109
 	echo -e "\033[34m1 for FIFO\033[0m"
 	echo -e "\033[34m2 for LIFO\033[0m"
 	echo -e "\033[34m3 to change your password\033[0m"
+	echo -e "\033[34m4 to manage simulation data\033[0m"
 
 	#Checks Type (Admin or user)
 	if [ "$type" = "admin" ]; then
-        echo -e "\033[34m4 for Admin\033[0m"
+        echo -e "\033[34m===================\033[0m"
+        echo -e "\033[34m5 for Admin Functions\033[0m"
+        echo -e "\033[34m===================\033[0m"
     fi
 
 	echo -e "\033[31mBYE for exit\033[0m"
@@ -30,12 +36,15 @@ MenuSel()
 	case $(echo $1 | tr '[:lower:]' '[:upper:]') in
 		1) sh FIFO.sh;;
 		2) sh LIFO.sh;;
-		3)
+		3) 
 			clear 
 			ChangePassword;;
+		4)
+    		clear
+			simData;;
 
 		#Checks Type (Admin or user)
-		4) 	if [ "$type" = "admin" ]; then
+		5) 	if [ "$type" = "admin" ]; then
 				clear
                 ./Admin.sh
 				# exit 0
@@ -44,6 +53,7 @@ MenuSel()
                 sleep 1.5
 				Menu
             fi;;
+		
 
 		BYE) BYE;;
 

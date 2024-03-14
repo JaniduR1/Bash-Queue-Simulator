@@ -2,9 +2,11 @@
 
 # Validate Users
 Validation() {
-    grep -q "^$username,$password," "UPP.db"
+    grep -q "^$username,$password," "UPP.db" # https://www.shellscript.sh/external.html
     return $?
 }
+
+
 
 # Loading Animation
 loadingAnimation() {
@@ -270,11 +272,95 @@ ChangePassword(){
             break  # Exit loop if successful
         fi
     done
+
+    # Create admin or user?
+    
     # Update password in UPP.db
     grep -v "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,$type" >> "tempfile" && mv "tempfile" "UPP.db"
     echo "Your password has been changed"
 	sleep 1
     return 0
+}
+
+simData() {
+    local data="simdata_${username}.job"
+
+    enterSimData() {
+        inputData=""
+        byteValue=""
+        i=1  # Counter to check for 10 bytes
+
+        while [ $i -le 10 ]; do
+            clear
+            if [ -n "$inputData" ]; then
+                echo "Values entered so far - $inputData" # Values entered so far
+            fi
+
+            # Prompt for the next byte of data
+            echo "Please enter the value for byte ${i}:"
+            read byteValue
+
+            # Validate input format using grep.
+            if echo "$byteValue" | grep -Eq '^B[0-9]{2}$'; then
+                inputData="$inputData$byteValue," # append to inputData with a ,
+                i=$((i + 1))  # add 1 to the counter
+            else
+                echo "Invalid Format! Enter the value in this format BXX - B00 or B63 etc"
+                sleep 0.5
+            fi
+        done
+        # Save inputData to the user's simulation data file
+        echo "$inputData" > "simdata_${username}.job"
+        echo "Simulation data saved to simdata_${username}.job."
+    }
+
+    if [ ! -f "$data" ]; then
+        clear
+        echo "No simulation data file found"
+        while true; do
+            echo "Would you like to: "
+            echo "1) Use the predefined simulation data"
+            echo "2) Enter your own simulation data"
+            read choice
+            
+            if [ "$choice" = "1" ]; then
+                echo "Creating simulation data file with predefined data..."
+                sleep 1.5
+                echo "B00,B99,B89,B33,B55,B01,B29,B18,B10,B11," > "$data"
+                break
+            elif [ "$choice" = "2" ]; then
+                enterSimData
+                break
+            else
+                echo "Invalid choice. Please choose either 1 or 2"
+                sleep 1
+                clear
+            fi
+        done
+    else
+        clear
+        echo "Simulation data file already exists"
+        while true; do
+            echo "Would you like to: "
+            echo "1) Keep and use existing simulation data"
+            echo "2) Overwrite with new data"
+            read choice
+
+            if [ "$choice" = "1" ]; then
+                echo "Using existing simulation data"
+                sleep 1
+                clear
+                break
+            elif [ "$choice" = "2" ]; then
+                enterSimData
+                break
+            else
+                echo "Invalid choice. Please enter 1 or 2"
+                sleep 1
+                clear
+            fi
+        done
+    fi
 }
 
 # Bye
@@ -299,3 +385,5 @@ BYE() {
         esac
     done
 }
+
+# https://www.shellscript.sh/functions.html
