@@ -1,4 +1,9 @@
 #!/bin/sh
+source ./Funcutions.sh  
 
-cat simdata_janidu.job
-sleep 5
+cat "simdata_$username.job"
+
+SimUsage "FIFO"
+
+sleep 2
+exit 0

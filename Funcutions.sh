@@ -1,9 +1,19 @@
 #!/bin/sh
+export SimUsageInfo=""
+
+# Check when a user exits
+UserExitTime() {
+    trap UserExit EXIT
+}
+
 
 # Validate Users
 Validation() {
-    grep -q "^$username,$password," "UPP.db" # https://www.shellscript.sh/external.html
-    return $?
+    if grep -iq "^$username,$password," "UPP.db"; then # https://www.shellscript.sh/external.html
+        return 0
+    else
+        return 1  # Login Failed
+    fi
 }
 
 
@@ -113,9 +123,24 @@ CreateUser()
         fi
     done
 
-    echo "$username,$password,$pin,user" >> "UPP.db"
-    #echo "$username,$password,$pin,user" | tee UPP.db > /dev/null
-    echo "User $username created successfully."
+
+    clear
+    echo "Select the user type for $username:"
+    echo "1) User"
+    echo "2) Admin"
+    read userType
+
+    case "$userType" in
+        1) userType="user";;
+        2) userType="admin";;
+        *) 
+            echo "Invalid selection, setting $username as default 'user'"
+            sleep 2
+            userType="user";;
+    esac
+
+    echo "$username,$password,$pin,$userType" >> "UPP.db"
+    echo "User $username created successfully"
     sleep 1
     return 0
 }
@@ -144,12 +169,12 @@ DeleteUser()
         while true; do
             clear
             echo "Please enter your PIN number to proceed: "
-            read confirmationPIN
+            read -s confirmationPIN
 
             #Checks if the PIN matches that specfic users PIN
             checkUserPIN=$(grep "^$userToDelete,.*,$confirmationPIN,user" "UPP.db")
-            #Checks if the PIN entered is an Admin PIN
-            checkAdminPIN=$(grep ",$confirmationPIN,admin" "UPP.db")
+            #Checks if the PIN matches that specfic admins PIN       
+            checkAdminPIN=$(grep "^$username,.*,$confirmationPIN,admin" "UPP.db")
 
             # If both the users and admins pin variables are empty fail 
             if [ -z "$checkUserPIN" ] && [ -z "$checkAdminPIN" ]; then
@@ -192,6 +217,7 @@ CheckUserExists() {
 # Change a password
 ChangePassword(){
     local currentUser=$username
+    local newPassword confirmPassword userPIN
     # If the user is an admin, show a list of users available
     if [ "$type" = "admin" ]; then
         clear
@@ -214,7 +240,7 @@ ChangePassword(){
     local pinValid=false
     while [ "$pinValid" = false ]; do
         echo "Enter your PIN to change the password of $currentUser: "
-        read userPIN
+        read -s userPIN
         #echo "You entered $userPIN"
         #sleep 2
 
@@ -223,7 +249,7 @@ ChangePassword(){
             # If there is an admin PIN with the given PIN
             # Check if the admin pin is correct
             if grep -q "^$username,.*,$userPIN,admin" "UPP.db"; then
-                echo "Valid"
+                echo "Valid PIN"
                 sleep 1
                 pinValid=true # Set the flag to true
             else
@@ -234,7 +260,7 @@ ChangePassword(){
 
         else  # Users changing password
             if grep -q "^$currentUser,.*,$userPIN," "UPP.db"; then
-                echo "Valid"
+                echo "Valid PIN"
                 sleep 1        
                 pinValid=true  # If a user exists with the given PIN
             else
@@ -258,7 +284,7 @@ ChangePassword(){
             continue  # Loops back
         fi
 
-		echo "Please re-enter the password for the user $username:"
+		echo "Please re-enter the password for the user $currentUser:"
         read -s confirmPassword
 
         # Then, check if passwords match
@@ -272,13 +298,15 @@ ChangePassword(){
             break  # Exit loop if successful
         fi
     done
-
-    # Create admin or user?
     
     # Update password in UPP.db
-    grep -v "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,$type" >> "tempfile" && mv "tempfile" "UPP.db"
-    echo "Your password has been changed"
-	sleep 1
+    if [ "$currentUser" != "$username" ] || [ "$type" != "admin" ]; then
+        grep -v "^$currentUser," "UPP.db" > "tempfile" && echo "$currentUser,$newPassword,$userPIN,$type" >> "tempfile" && mv "tempfile" "UPP.db"
+    else
+        grep -v "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,admin" >> "tempfile" && mv "tempfile" "UPP.db"
+    fi
+    echo "Password for $currentUser has been changed"
+    sleep 1
     return 0
 }
 
@@ -372,7 +400,7 @@ BYE() {
 
         case "$check" in
             Y)
-                exitAnimation
+                # exitAnimation
                 sleep 0.5
                 exit 0
                 ;;
@@ -380,10 +408,40 @@ BYE() {
                 return 0  # Return to the calling function
                 ;;
             *)
+                clear
                 echo "That is not a valid choice. Please choose either 'Y' for yes or 'N' for No"
                 ;;
         esac
     done
+} # https://www.shellscript.sh/functions.html
+
+
+
+SimUsage() {
+    local simName="$1"
+    local timeUsed=$(date +"%Y-%m-%d %H:%M:%S")
+    # Append simulator usage information
+    SimUsageInfo+=$"The $type $username used the simulator $simName at $timeUsed"
+    echo "$SimUsageInfo" >> Usage.db
+    
 }
 
-# https://www.shellscript.sh/functions.html
+UserExit() {
+    #local simUsageInfo="$1"
+    local userLogoutTime=$(date +%s)
+    local duration=$((userLogoutTime - userLoginTime))
+
+    local loginTimeFormatted=$(date +"%Y-%m-%d %H:%M:%S" -d "@$userLoginTime")
+    local logoutTimeFormatted=$(date +"%Y-%m-%d %H:%M:%S" -d "@$userLogoutTime")
+
+    #echo "Debugging SimUsageInfo before logging: $SimUsageInfo"
+    #echo "Debugging Lower before logging: $simUsageInfo"
+
+    printf "===================================================================\n" >> Usage.db
+    printf "The $type $username logged in at $loginTimeFormatted and logged out at $logoutTimeFormatted, which is a total duration of $duration seconds" >> Usage.db
+    echo "$SimUsageInfo" >> Usage.db
+    printf "===================================================================\n" >> Usage.db
+
+    #echo "Logging SimUsageInfo to Usage.db: $SimUsageInfo" >> debug.log
+    # Reset SimUsageInfo for the next session
+}

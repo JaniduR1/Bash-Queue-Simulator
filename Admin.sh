@@ -12,9 +12,10 @@ source ./Funcutions.sh
 AdminMenu()
 {
     clear
-	echo -e "\033[34m1 to add user\033[0m"
-	echo -e "\033[34m2 to delete user\033[0m"
-	echo -e "\033[34m3 to update a user password\033[0m"
+	echo -e "\033[34m1 To add user\033[0m"
+	echo -e "\033[34m2 To delete user\033[0m"
+	echo -e "\033[34m3 To update a user password\033[0m"
+	echo -e "\033[34m4 To acess useage information\033[0m"
 
 	echo -e "\033[31mBYE for exit\033[0m"
 	echo "Please Enter Selection:"
@@ -29,6 +30,7 @@ AdminMenuSelected()
 		1) CreateUser;;
 		2) DeleteUser;;
 		3) ChangePassword;;
+		4) ./UsageInformation.sh;;
 
 		BYE) BYE;;
 
