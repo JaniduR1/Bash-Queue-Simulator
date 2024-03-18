@@ -10,7 +10,9 @@ UsageMenu()
 	echo -e "\033[34m3 To see the most popular simulator overall\033[0m"
 	echo -e "\033[34m4 To see a ranking list of the users who have used the system the most\033[0m"
 
+	echo -e "\033[31m-------------------\033[0m"
 	echo -e "\033[31mBYE for exit\033[0m"
+	echo -e "\033[31m-------------------\033[0m"
 	echo "Please Enter Selection:"
 	read selected
 	UsageMenuSelected $selected

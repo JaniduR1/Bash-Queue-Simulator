@@ -1,7 +1,7 @@
 #!/bin/sh
-export SimUsageInfo=""
+export SimUsageInfo="" # Global variable to track simu usage info
 
-# Check when a user exits
+# Check when a user exits and calls the function UserExit
 UserExitTime() {
     trap UserExit EXIT
 }
@@ -9,8 +9,9 @@ UserExitTime() {
 
 # Validate Users
 Validation() {
-    if grep -iq "^$username,$password," "UPP.db"; then # https://www.shellscript.sh/external.html
-        return 0
+    # https://www.shellscript.sh/external.html
+    if grep -iq "^$username,$password," "UPP.db"; then # Use grep to find a username and password in UPP.db case-insensitively.
+        return 0 # Success
     else
         return 1  # Login Failed
     fi
@@ -21,15 +22,15 @@ Validation() {
 # Loading Animation
 loadingAnimation() {
 	clear
-	set -- "." "." "." "." "." "." "." "."
-	printf "Loading ["
+	set -- "." "." "." "." "." "." "." "." # Set positional parameters as .
+	printf "Loading [" # Print loading message without a newline
 	for word in "$@"
 	do
-	printf "$word"
-	sleep 0.1
+	printf "$word" # Print each dot
+	sleep 0.1 # Wait 0.1s between each dot (effect)
 	done
-	printf "]"
-	printf "\n"
+	printf "]" # Close the animation bracket
+	printf "\n" # New line
 	sleep 0.3
 	clear
 }
@@ -37,9 +38,9 @@ loadingAnimation() {
 # Exit Animation
 exitAnimation() {
     clear
-    set -- "|" "/" "-" "\\"
+    set -- "|" "/" "-" "\\" # Set positional parameters
 	printf "Exiting... "
-	for i in 1 2 3 4; do
+	for i in 1 2 3 4; do # Loop to repeat 4 times
         for spin in "$@"; do
             printf "\b%s" "$spin"
             sleep 0.1
@@ -53,60 +54,64 @@ exitAnimation() {
 # Creating a user
 CreateUser()
 {
+    local username
+    local password
+    local pin
+    local userType
     clear
 
     ## Username Creation
-    while true; do
+    while true; do # To keep looping to ask for a username at every failed username input
         clear
         echo "Please enter a username (must be 5 alphanumeric characters): "
         read username
 
-        if echo "$username" | grep -Eq "^[a-zA-Z0-9]{5}$"; then # Checks if it doesnt match the given extended regex "E"
+        if echo "$username" | grep -Eq "^[a-zA-Z0-9]{5}$"; then # Checks if the given username matches the given extended regex "E" quietly
             if grep -q "^$username," "UPP.db"; then # Checks if the username already exists
-                echo "The given username already exists, please change it!!!"
+                echo "The given username already exists, please change it!!!" # Error for if the username exists
                 sleep 1.5
             else
-                break
+                break # Exit the loop if the given username is  5 alpha num char and doesnt exist in UPP.db
             fi
         else
-            echo "Username needs to be 5 alphanumeric characters!!!"
+            echo "Username needs to be 5 alphanumeric characters!!!" # If the username is not 5 alpha num char
             sleep 1.5
         fi
     done
 
 
     ## Password Creation
-    while true; do
+    while true; do # To keep looping to ask for a password at every failed password input
         clear
         echo "Please enter a 5 alphanumeric character password for the user $username:"
-        read -s password
+        read -s password # Reads silently
 
-        if ! echo "$password" | grep -Eq "^[a-zA-Z0-9]{5}$"; then
-            echo "Password needs to be 5 alphanumeric characters!!!"
+        if ! echo "$password" | grep -Eq "^[a-zA-Z0-9]{5}$"; then  # Checks if the given password matches the given extended regex "E" quietly
+            echo "Password needs to be 5 alphanumeric characters!!!" # If not 5 alpha num char
             sleep 1.5
             continue  # Loops back and asks for a valid password again
         fi
 
         echo "Please re-enter the password for the user $username:"
-        read -s confirmPassword
+        read -s confirmPassword # Reads silently
 
         # Checks if passwords match
-        if [ "$password" != "$confirmPassword" ]; then
+        if [ "$password" != "$confirmPassword" ]; then # Checks if the password and confirm password matches
             echo "Passwords don't match!!!"
             sleep 1.5
         else
-            break
+            break # End the loop if it passes all the tests
         fi
     done
 
 
     ## PIN Creation
-    while true; do
+    while true; do # To keep looping to ask for a PIN at every failed PIN input
         clear
         echo "Please enter a PIN for the user $username:"
-        read -s pin
+        read -s pin # Read pin quietly
 
-        if ! echo "$pin" | grep -Eq "^[0-9]{3}$"; then
+        if ! echo "$pin" | grep -Eq "^[0-9]{3}$"; then # Checks if the given PIN matches the given extended regex "E" quietly
             echo "PIN must be 3 digits!!!"
             sleep 1.5
             continue # Loops back and asks for a valid PIN again
@@ -115,7 +120,7 @@ CreateUser()
         echo "Please re-enter the PIN for the user $username:"
         read -s confirmPIN
 
-        if [ "$pin" != "$confirmPIN" ]; then
+        if [ "$pin" != "$confirmPIN" ]; then # Checks if the PIN and confirm PIN matches
             echo "PINs don't match!!!"
             sleep 1.5
         else
@@ -128,21 +133,33 @@ CreateUser()
     echo "Select the user type for $username:"
     echo "1) User"
     echo "2) Admin"
-    read userType
+    read userType # Read a user type selection to choose from when creating a user to give correct role
 
     case "$userType" in
         1) userType="user";;
         2) userType="admin";;
         *) 
-            echo "Invalid selection, setting $username as default 'user'"
+            echo "Invalid selection, setting $username as default 'user'"  # Default to "user" for an invalid input
             sleep 2
             userType="user";;
     esac
 
-    echo "$username,$password,$pin,$userType" >> "UPP.db"
-    echo "User $username created successfully"
+    echo "$username,$password,$pin,$userType" >> "UPP.db" # Append the new user to the UPP.db
+    echo "User $username created successfully" # Success message
     sleep 1
     return 0
+}
+
+#Check if user exists
+CheckUserExists() {
+    local searchUsername=$1 # Local variable for username to search for
+    if grep -q "^$searchUsername," "UPP.db"; then
+        return 0  # Successfully found
+    else
+        echo "That username doesn't exist"
+        sleep 2
+        return 1  # Failed status if the user doesn't exist
+    fi
 }
 
 #Deleting a user
@@ -151,25 +168,22 @@ DeleteUser()
     clear
 
     echo "Users Available: "
-    cut -d',' -f1 "UPP.db"
+    cut -d',' -f1 "UPP.db" # Print a list of existing usernames
     sleep 1
 
     while true; do
         echo "Enter a specfic user to delete"
-        read userToDelete
+        read userToDelete # Read the username to delete
 
-        #Check if user exists
-        if ! grep -q "^$userToDelete," "UPP.db"; then
-            echo "Username: $userToDelete, doesn't exist, please enter a valid existing user to delete"
-            sleep 1.5
-            clear
-            continue # Loop back
+        # Check if user exists
+        if ! CheckUserExists "$userToDelete"; then
+            continue # Loop back to ask to enter a user that does exist
         fi
 
         while true; do
             clear
             echo "Please enter your PIN number to proceed: "
-            read -s confirmationPIN
+            read -s confirmationPIN # Read PIN silently
 
             #Checks if the PIN matches that specfic users PIN
             checkUserPIN=$(grep "^$userToDelete,.*,$confirmationPIN,user" "UPP.db")
@@ -182,7 +196,7 @@ DeleteUser()
                 sleep 1
                 clear
             else
-                break # Valid / Successful
+                break # If Valid / Successful break the loop
             fi
         done
 
@@ -190,48 +204,37 @@ DeleteUser()
         read confirm
 
         if [ "$confirm" = "Y" ] || [ "$confirm" = "y" ]; then
+            rm "simdata_$userToDelete.job" # Removes the users .job file also
             # Take everything that doesn't match the user being deleted and move to a new file, then rename that new file to UPP.db
-            grep -v "^$userToDelete," "UPP.db" > "newfile" && mv "newfile" "UPP.db"
+            grep -v "^$userToDelete," "UPP.db" > "newfile" && mv "newfile" "UPP.db" # Remove the user entry and update the file
             echo "User $userToDelete deleted"
             sleep 0.5
         else
-            echo "Cancelled"
+            echo "Cancelled" # If the input to confirm variable anything other than Y for yes cancel the operation
             sleep 0.5
         fi
-        break
+        break # End the loop
     done
-}
-
-#Check if user exists
-CheckUserExists() {
-    local searchUsername=$1
-    if grep -q "^$searchUsername," "UPP.db"; then
-        return 0  # Successfully found
-    else
-        echo "That username doesn't exist"
-        sleep 2
-        return 1  # Failed status if the user doesn't exist
-    fi
 }
 
 # Change a password
 ChangePassword(){
-    local currentUser=$username
+    local currentUser=$username # Local variable for current username
     local newPassword confirmPassword userPIN
     # If the user is an admin, show a list of users available
     if [ "$type" = "admin" ]; then
         clear
         echo "Users Available: "
-        cut -d',' -f1 "UPP.db"
+        cut -d',' -f1 "UPP.db" # Print a list of users
         sleep 1
         # Choose a user
         echo "Enter the name of the user you would like to change: "
         read inputUsername
+
+        # Check if a username is entered and if it exists
         if [[ ! -z "$inputUsername" ]]; then
             if CheckUserExists "$inputUsername"; then
-                currentUser="$inputUsername"
-            else
-                return 1
+                currentUser="$inputUsername" # Set the local variable currentUser to the selected username
             fi
         fi
     fi
@@ -247,11 +250,10 @@ ChangePassword(){
         # Check if the current user is an admin and if they are changing another users password or has entered a username
         if [ "$type" = "admin" ]; then
             # If there is an admin PIN with the given PIN
-            # Check if the admin pin is correct
-            if grep -q "^$username,.*,$userPIN,admin" "UPP.db"; then
+            if grep -q "^$username,.*,$userPIN,admin" "UPP.db"; then # Check if the logged in admin pin is correct (matches their PIN in UPP.db)
                 echo "Valid PIN"
                 sleep 1
-                pinValid=true # Set the flag to true
+                pinValid=true # Set the flag to true 
             else
                 echo "Incorrect PIN!"
                 sleep 1
@@ -259,12 +261,12 @@ ChangePassword(){
             fi
 
         else  # Users changing password
-            if grep -q "^$currentUser,.*,$userPIN," "UPP.db"; then
+            if grep -q "^$currentUser,.*,$userPIN," "UPP.db"; then # Check if the PIN matches their own PIN
                 echo "Valid PIN"
                 sleep 1        
-                pinValid=true  # If a user exists with the given PIN
+                pinValid=true  # Change flag to true if valid PIN
             else
-                echo "Incorrect PIN"
+                echo "Incorrect PIN" # If the PIN is wrong
                 sleep 2
                 clear
             fi
@@ -276,7 +278,7 @@ ChangePassword(){
         echo "Please enter a new 5 alphanumeric character password: "
         read -s newPassword
 
-		# Check If Password is 5 alphanumeric characters
+		# Check If Password is not 5 alphanumeric characters
 		if ! echo "$newPassword" | grep -Eq "^[a-zA-Z0-9]{5}$"; then
             echo "Password needs to be 5 alphanumeric characters!!!"
             sleep 1.5
@@ -287,7 +289,7 @@ ChangePassword(){
 		echo "Please re-enter the password for the user $currentUser:"
         read -s confirmPassword
 
-        # Then, check if passwords match
+        # Then, check if passwords don't match
         if [ "$newPassword" != "$confirmPassword" ]; then
             echo "Passwords don't match!!!"
             sleep 1
@@ -301,8 +303,13 @@ ChangePassword(){
     
     # Update password in UPP.db
     if [ "$currentUser" != "$username" ] || [ "$type" != "admin" ]; then
-        grep -v "^$currentUser," "UPP.db" > "tempfile" && echo "$currentUser,$newPassword,$userPIN,$type" >> "tempfile" && mv "tempfile" "UPP.db"
+        currentPin=$(grep "^$currentUser," UPP.db | cut -d',' -f3) # Extract the current PIN from UPP.db.
+        userType=$(grep "^$currentUser," UPP.db | cut -d',' -f4) # Extract the user type from UPP.db.
+        
+        # Update UPP.db without the current user entry then add the updated entry with new password.
+        grep -v "^$currentUser," UPP.db > tempfile && echo "$currentUser,$newPassword,$currentPin,$userType" >> tempfile && mv tempfile UPP.db
     else
+        # For admin or self-password changes keep the existing logic
         grep -v "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,admin" >> "tempfile" && mv "tempfile" "UPP.db"
     fi
     echo "Password for $currentUser has been changed"
@@ -314,23 +321,23 @@ ChangePassword(){
 TotalTimePerUser() {
     clear
     echo "Users Available: "
-    cut -d',' -f1 "UPP.db"
+    cut -d',' -f1 "UPP.db" # List of users
     echo "Enter the username to check total time used:"
     read user
 
-    if CheckUserExists "$user"; then
-        local totalTime=0
+    if CheckUserExists "$user"; then # Verify if user exists
+        local totalTime=0 # Initialise the total time variable
         while IFS= read -r line; do
             if [[ "$line" == *"$user logged in"* ]]; then
-                # Extract the duration using string manipulation
+                # Extract the duration (string manipulation)
                 local timeInfo="${line##*a total duration of }"
                 local time="${timeInfo%% seconds*}"
-                totalTime=$((totalTime + time))
+                totalTime=$((totalTime + time)) # Add duration to the total time
             fi
-        done < Usage.db
+        done < Usage.db # Read the data from Usage.db
 
         clear
-        echo "$user has used a total of $totalTime seconds"
+        echo "$user has used a total of $totalTime seconds" # Display total time used by the specfied user
         sleep 2
     fi
 }
@@ -339,15 +346,16 @@ TotalTimePerUser() {
 MostPopSimPerUser() {
     clear
     echo "Users Available: "
-    cut -d',' -f1 "UPP.db"
+    cut -d',' -f1 "UPP.db" # List users
     echo "Enter the username to check the most popular simulator used:"
     read user
 
-    if CheckUserExists "$user"; then
+    if CheckUserExists "$user"; then # Check user exists
         clear
-        FIFO=$(grep -c "$user used the simulator FIFO" Usage.db)
-        LIFO=$(grep -c "$user used the simulator LIFO" Usage.db)
+        FIFO=$(grep -c "$user used the simulator FIFO" Usage.db) # Count FIFO occurrences for that user
+        LIFO=$(grep -c "$user used the simulator LIFO" Usage.db) # Count LIFO occurrences for that user
 
+        # Compare FIFO and LIFO occurrences
         if [ "$FIFO" -gt "$LIFO" ]; then
             echo "The most popular simulator used by $user is FIFO with a total of $FIFO times"
             sleep 3
@@ -366,8 +374,8 @@ MostPopSimPerUser() {
 
 # Most popularsim used overall
 MostPopSimOverall() {
-    local FIFO=$(grep -c "used the simulator FIFO" Usage.db)
-    local LIFO=$(grep -c "used the simulator LIFO" Usage.db)
+    local FIFO=$(grep -c "used the simulator FIFO" Usage.db) # Count FIFO occurrences overall
+    local LIFO=$(grep -c "used the simulator LIFO" Usage.db) # Count LIFO occurrences overall
 
     clear
     if [ "$FIFO" -gt "$LIFO" ]; then
@@ -387,43 +395,42 @@ MostPopSimOverall() {
 
 # Ranking
 RankingOfUsers() {
-    # Create an associative-like mechanism with ":" as delimiter since shell arrays are not POSIX
-    > user_totals.txt
+    tempFile="user_totals.tmp"
+    > "$tempFile"
 
-    while IFS= read -r line; do
-        if echo "$line" | grep -q "logged in"; then
-            user=$(echo "$line" | cut -d' ' -f2,3)  # Extracting both role and name
-            duration=$(echo "$line" | grep -oE '[0-9]+ seconds' | cut -d' ' -f1)  # Extracting duration
+    # Extract usernames and their total durations, then sum them.
+    grep "logged in" Usage.db | while read -r line; do
+        user=$(echo "$line" | cut -d' ' -f2,3)  # Adjust to capture full user identifier correctly.
+        duration=$(echo "$line" | grep -oE '[0-9]+ seconds' | cut -d' ' -f1)  # Ensure correct extraction of the duration.
 
-            # Check if user already exists in user_totals.txt
-            if grep -q "^$user:" user_totals.txt; then
-                # Update existing user's total duration
-                old_total=$(grep "^$user:" user_totals.txt | cut -d':' -f2)
-                new_total=$((old_total + duration))
-                # Using sed to update in POSIX might not be directly possible without GNU extensions, so re-create the file
-                grep -v "^$user:" user_totals.txt > tmp && mv tmp user_totals.txt
-                echo "$user:$new_total" >> user_totals.txt
+        if [ -n "$duration" ]; then
+            # Check if user already has a total, update or initialize it.
+            if grep -q "^$user " "$tempFile"; then
+                # Extract existing total, add new duration.
+                existingTotal=$(grep "^$user " "$tempFile" | cut -d' ' -f3)
+                newTotal=$((existingTotal + duration))
+                # Replace the line with new total.
+                grep -v "^$user " "$tempFile" > "${tempFile}.tmp"
+                echo "$user $newTotal" >> "${tempFile}.tmp"
+                mv "${tempFile}.tmp" "$tempFile"
             else
-                # Add new user with initial duration
-                echo "$user:$duration" >> user_totals.txt
+                echo "$user $duration" >> "$tempFile"
             fi
         fi
-    done < Usage.db
-
-    echo "Rankings are:"
-    # Simple sort and display
-    # POSIX shell doesn't support associative arrays or direct sorting by value, so this will be a basic sort
-    cat user_totals.txt | while IFS=: read -r user total; do
-        echo "The $user with a total time of $total seconds"
     done
 
-    sleep 5  # Giving time for users to see the output
-    # Clean up if needed
-    rm user_totals.txt
+    echo "Rankings are:"
+    # Sort and display results, ensuring numeric sorting by total duration.
+    sort -k3 -nr "$tempFile" | while read -r user total; do
+        echo "$user: $total seconds"
+    done
+	
+	sleep 8
+    rm "$tempFile"
 }
 
 simData() {
-    local data="simdata_${username}.job"
+    local data="simdata_${username}.job" # Define the filename
 
     enterSimData() {
         inputData=""
@@ -440,20 +447,21 @@ simData() {
             echo "Please enter the value for byte ${i}:"
             read byteValue
 
-            # Validate input format using grep.
+            # Validate input format using grep (format as BXX where XX is a number)
             if echo "$byteValue" | grep -Eq '^B[0-9]{2}$'; then
-                inputData="$inputData$byteValue," # append to inputData with a ,
+                inputData="$inputData$byteValue," # append to inputData
                 i=$((i + 1))  # add 1 to the counter
             else
                 echo "Invalid Format! Enter the value in this format BXX - B00 or B63 etc"
                 sleep 1
             fi
         done
-        # Save inputData to the user's simulation data file
+        # Save inputData to the users simulation data file
         echo "$inputData" > "simdata_${username}.job"
         echo "Simulation data saved to simdata_${username}.job."
     }
 
+    # Check if simulation data file already exists for the user.
     if [ ! -f "$data" ]; then
         clear
         echo "No simulation data file found"
@@ -466,10 +474,10 @@ simData() {
             if [ "$choice" = "1" ]; then
                 echo "Creating simulation data file with predefined data..."
                 sleep 1.5
-                echo "B00,B99,B89,B33,B55,B01,B29,B18,B10,B11," > "$data"
+                echo "B00,B99,B89,B33,B55,B01,B29,B18,B10,B11," > "$data" # Populate with predefined data
                 break
             elif [ "$choice" = "2" ]; then
-                enterSimData
+                enterSimData # Call above enterSimData for manual sim data input
                 break
             else
                 echo "Invalid choice. Please choose either 1 or 2"
@@ -508,7 +516,7 @@ BYE() {
     while true; do
         echo "Do you really wanna exit (Y/N)"
         read check
-        check=$(echo $check | tr '[:lower:]' '[:upper:]')
+        check=$(echo $check | tr '[:lower:]' '[:upper:]') # Convert input to lower then upper case
 
         case "$check" in
             Y)
@@ -530,31 +538,28 @@ BYE() {
 
 
 SimUsage() {
-    local simName="$1"
+    local simName="$1" # Local variable for simulator name
     local timeUsed
-    timeUsed=$(date +"%Y-%m-%d %H:%M:%S")
-    # Correctly append simulator usage information
-    SimUsageInfo="${SimUsageInfo}The $type $username used the simulator $simName at $timeUsed"
-    # Write the updated information to Usage.db
-    echo "$SimUsageInfo" >> Usage.db
+    timeUsed=$(date +"%Y-%m-%d %H:%M:%S") # Get the current time
+    
+    SimUsageInfo="${SimUsageInfo}The $type $username used the simulator $simName at $timeUsed" # Append the usage information
+    echo "$SimUsageInfo" >> Usage.db # Write updated information to Usage.db
 }
 
+# Function to handle user exit, logging the session duration and usage information.
 UserExit() {
-    #local simUsageInfo="$1"
-    local userLogoutTime=$(date +%s)
-    local duration=$((userLogoutTime - userLoginTime))
+    local userLogoutTime=$(date +%s) # Get logout time (in seconds)
+    local duration=$((userLogoutTime - userLoginTime)) # Calculate duration
 
-    local loginTimeFormatted=$(date +"%Y-%m-%d %H:%M:%S" -d "@$userLoginTime")
-    local logoutTimeFormatted=$(date +"%Y-%m-%d %H:%M:%S" -d "@$userLogoutTime")
+    local loginTimeFormatted=$(date +"%Y-%m-%d %H:%M:%S" -d "@$userLoginTime") # Reformat login time (displaying)
+    local logoutTimeFormatted=$(date +"%Y-%m-%d %H:%M:%S" -d "@$userLogoutTime") # Reformat logout time (displaying)
 
     #echo "Debugging SimUsageInfo before logging: $SimUsageInfo"
     #echo "Debugging Lower before logging: $simUsageInfo"
 
-    printf "===================================================================\n" >> Usage.db
+    printf "===================================================================\n" >> Usage.db # Display purposes (seperate from sim usage stuff)
+    # Log the username and times and duration into
     printf "The $type $username logged in at $loginTimeFormatted and logged out at $logoutTimeFormatted, which is a total duration of $duration seconds" >> Usage.db
     echo "$SimUsageInfo" >> Usage.db
     printf "===================================================================\n" >> Usage.db
-
-    #echo "Logging SimUsageInfo to Usage.db: $SimUsageInfo" >> debug.log
-    # Reset SimUsageInfo for the next session
 }

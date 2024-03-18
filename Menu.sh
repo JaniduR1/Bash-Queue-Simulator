@@ -23,7 +23,9 @@ Menu()
         echo -e "\033[34m===================\033[0m"
     fi
 
+	echo -e "\033[31m-------------------\033[0m"
 	echo -e "\033[31mBYE for exit\033[0m"
+	echo -e "\033[31m-------------------\033[0m"
 	echo "Please Enter Selection:"
 	read selected
 	MenuSel $selected
