@@ -3,6 +3,8 @@ source ./Funcutions.sh
 
 var="simdata_$username.job"
 
+echo "The Simulation Data as LIFO: "
+
 cat $var | cut -d "," -f 10
 cat $var | cut -d "," -f 9
 cat $var | cut -d "," -f 8

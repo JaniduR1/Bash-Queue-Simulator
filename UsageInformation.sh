@@ -19,10 +19,10 @@ UsageMenu()
 UsageMenuSelected()
 {
     case $(echo $1 | tr '[:lower:]' '[:upper:]') in
-		1) CreateUser;;
-		2) DeleteUser;;
-		3) ChangePassword;;
-		4) ./UsageInformation.sh;;
+		1) TotalTimePerUser;;
+		2) MostPopSimPerUser;;
+		3) MostPopSimOverall;;
+		4) RankingOfUsers;;
 
 		BYE) BYE;;
 

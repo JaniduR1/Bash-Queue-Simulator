@@ -310,6 +310,118 @@ ChangePassword(){
     return 0
 }
 
+# Total time used per user
+TotalTimePerUser() {
+    clear
+    echo "Users Available: "
+    cut -d',' -f1 "UPP.db"
+    echo "Enter the username to check total time used:"
+    read user
+
+    if CheckUserExists "$user"; then
+        local totalTime=0
+        while IFS= read -r line; do
+            if [[ "$line" == *"$user logged in"* ]]; then
+                # Extract the duration using string manipulation
+                local timeInfo="${line##*a total duration of }"
+                local time="${timeInfo%% seconds*}"
+                totalTime=$((totalTime + time))
+            fi
+        done < Usage.db
+
+        clear
+        echo "$user has used a total of $totalTime seconds"
+        sleep 2
+    fi
+}
+
+# Most popular sim used per user
+MostPopSimPerUser() {
+    clear
+    echo "Users Available: "
+    cut -d',' -f1 "UPP.db"
+    echo "Enter the username to check the most popular simulator used:"
+    read user
+
+    if CheckUserExists "$user"; then
+        clear
+        FIFO=$(grep -c "$user used the simulator FIFO" Usage.db)
+        LIFO=$(grep -c "$user used the simulator LIFO" Usage.db)
+
+        if [ "$FIFO" -gt "$LIFO" ]; then
+            echo "The most popular simulator used by $user is FIFO with a total of $FIFO times"
+            sleep 3
+        elif [ "$LIFO" -gt "$FIFO" ]; then
+            echo "The most popular simulator used by $user is LIFO with a total of $LIFO times"
+            sleep 3
+        elif [ "$FIFO" -ne 0 ] && [ "$FIFO" -eq "$LIFO" ]; then # If its not equal to a count of 0 and both are used the same amount of times
+            echo "Both simulators have been used an equal time of $FIFO times"
+            sleep 3
+        else
+            echo "No data found for the user $user"
+            sleep
+        fi
+    fi
+}
+
+# Most popularsim used overall
+MostPopSimOverall() {
+    local FIFO=$(grep -c "used the simulator FIFO" Usage.db)
+    local LIFO=$(grep -c "used the simulator LIFO" Usage.db)
+
+    clear
+    if [ "$FIFO" -gt "$LIFO" ]; then
+        echo "The most popular simulator overall is FIFO which has been used $FIFO times"
+        sleep 3
+    elif [ "$LIFO" -gt "$FIFO" ]; then
+        echo "The most popular simulator overall is LIFO which has been used used $LIFO times"
+        sleep 3
+    elif [ "$FIFO" -eq "$LIFO" ] && [ "$FIFO" -ne 0 ]; then
+        echo "Both FIFO and LIFO have been used equally with each being used $FIFO times" # If its not equal to a count of 0 and both are used the same amount of times
+        sleep 3
+    else
+        echo "No data available :( RIP sadge"
+        sleep 2
+    fi
+}
+
+# Ranking
+RankingOfUsers() {
+    # Create an associative-like mechanism with ":" as delimiter since shell arrays are not POSIX
+    > user_totals.txt
+
+    while IFS= read -r line; do
+        if echo "$line" | grep -q "logged in"; then
+            user=$(echo "$line" | cut -d' ' -f2,3)  # Extracting both role and name
+            duration=$(echo "$line" | grep -oE '[0-9]+ seconds' | cut -d' ' -f1)  # Extracting duration
+
+            # Check if user already exists in user_totals.txt
+            if grep -q "^$user:" user_totals.txt; then
+                # Update existing user's total duration
+                old_total=$(grep "^$user:" user_totals.txt | cut -d':' -f2)
+                new_total=$((old_total + duration))
+                # Using sed to update in POSIX might not be directly possible without GNU extensions, so re-create the file
+                grep -v "^$user:" user_totals.txt > tmp && mv tmp user_totals.txt
+                echo "$user:$new_total" >> user_totals.txt
+            else
+                # Add new user with initial duration
+                echo "$user:$duration" >> user_totals.txt
+            fi
+        fi
+    done < Usage.db
+
+    echo "Rankings are:"
+    # Simple sort and display
+    # POSIX shell doesn't support associative arrays or direct sorting by value, so this will be a basic sort
+    cat user_totals.txt | while IFS=: read -r user total; do
+        echo "The $user with a total time of $total seconds"
+    done
+
+    sleep 5  # Giving time for users to see the output
+    # Clean up if needed
+    rm user_totals.txt
+}
+
 simData() {
     local data="simdata_${username}.job"
 
@@ -334,7 +446,7 @@ simData() {
                 i=$((i + 1))  # add 1 to the counter
             else
                 echo "Invalid Format! Enter the value in this format BXX - B00 or B63 etc"
-                sleep 0.5
+                sleep 1
             fi
         done
         # Save inputData to the user's simulation data file
@@ -419,11 +531,12 @@ BYE() {
 
 SimUsage() {
     local simName="$1"
-    local timeUsed=$(date +"%Y-%m-%d %H:%M:%S")
-    # Append simulator usage information
-    SimUsageInfo+=$"The $type $username used the simulator $simName at $timeUsed"
+    local timeUsed
+    timeUsed=$(date +"%Y-%m-%d %H:%M:%S")
+    # Correctly append simulator usage information
+    SimUsageInfo="${SimUsageInfo}The $type $username used the simulator $simName at $timeUsed"
+    # Write the updated information to Usage.db
     echo "$SimUsageInfo" >> Usage.db
-    
 }
 
 UserExit() {
