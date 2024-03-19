@@ -232,11 +232,11 @@ ChangePassword(){
         read inputUsername
 
         # Check if a username is entered and if it exists
-        if [[ ! -z "$inputUsername" ]]; then
-            if CheckUserExists "$inputUsername"; then
-                currentUser="$inputUsername" # Set the local variable currentUser to the selected username
-            fi
+        if [ -z "$inputUsername" ] || ! CheckUserExists "$inputUsername"; then
+            return  # Exit the function if the user does not exist
         fi
+
+        currentUser="$inputUsername"
     fi
 
     # Set the flag as false to start
@@ -395,6 +395,7 @@ MostPopSimOverall() {
 
 # Ranking
 RankingOfUsers() {
+    local uname finalDuration
     temporaryTime="totalTimes.tmp" # Create a temporary file to hold each users total time.
     > "$temporaryTime" # Create and/or clear the contents within the file
 
@@ -419,7 +420,11 @@ RankingOfUsers() {
     echo "Rankings are:"
     # Sort the temp file by the total duration (descending)
     sort -k3 -nr "$temporaryTime" | while read -r user total; do
-        echo "The $user with a total time of $total seconds" # Output for the user
+        # $total now shows (name)(duration)
+        uname=$(echo "$total" | cut -d' ' -f1) # Take the 1st field of $total (name)
+        finalDuration=$(echo "$total" | cut -d' ' -f2) # Take the 2nd field of $total (total time)
+
+        echo "The $user $uname with a total time of $finalDuration seconds" # Output for the user
     done
 	
 	sleep 8
