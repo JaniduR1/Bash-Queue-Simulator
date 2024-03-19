@@ -1,6 +1,10 @@
 #!/bin/sh
 source ./Funcutions.sh  
 
+clear
+loadingAnimation
+clear
+
 var="simdata_$username.job"
 
 echo "The Simulation Data as LIFO: "
@@ -18,16 +22,6 @@ cat $var | cut -d "," -f 1
 
 SimUsage "LIFO"
 
-sleep 2
+echo "Press any key to exit"
+read -n 1 -s
 exit 0
-
-# logSimulatorUsage "LIFO"
-
-# # Existing content of LIFO.sh
-# var="simdata_$username.job"
-
-# # Assuming this part executes the LIFO logic
-# cat $var | tail -r  # This is a simplistic approach; adjust based on your actual LIFO logic
-
-# sleep 5
-# exit 0

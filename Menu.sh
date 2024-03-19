@@ -5,16 +5,14 @@ source ./Funcutions.sh
 Menu()
 {
 	clear
-	#loadingAnimation
+	loadingAnimation
 	clear
-	# echo "$type"
-	# sleep 5
-	# clear
+
 	echo -e "\033[32mHi $username, Make your selection or type bye to exit:\033[0m" #https://gist.github.com/vratiu/9780109
-	echo -e "\033[34m1 For FIFO\033[0m"
-	echo -e "\033[34m2 For LIFO\033[0m"
-	echo -e "\033[34m3 To change your password\033[0m"
-	echo -e "\033[34m4 To manage simulation data\033[0m"
+	echo -e "\033[36m1 For FIFO\033[0m"
+	echo -e "\033[36m2 For LIFO\033[0m"
+	echo -e "\033[36m3 To change your password\033[0m"
+	echo -e "\033[36m4 To manage simulation data\033[0m"
 
 	#Checks Type (Admin or user)
 	if [ "$type" = "admin" ]; then

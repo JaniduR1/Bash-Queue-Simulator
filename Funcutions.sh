@@ -303,11 +303,11 @@ ChangePassword(){
     
     # Update password in UPP.db
     if [ "$currentUser" != "$username" ] || [ "$type" != "admin" ]; then
-        currentPin=$(grep "^$currentUser," UPP.db | cut -d',' -f3) # Extract the current PIN from UPP.db.
-        userType=$(grep "^$currentUser," UPP.db | cut -d',' -f4) # Extract the user type from UPP.db.
+        pin=$(grep "^$currentUser," UPP.db | cut -d',' -f3) # Extract the current PIN from UPP.db
+        userType=$(grep "^$currentUser," UPP.db | cut -d',' -f4) # Extract the user type from UPP.db
         
         # Update UPP.db without the current user entry then add the updated entry with new password.
-        grep -v "^$currentUser," UPP.db > tempfile && echo "$currentUser,$newPassword,$currentPin,$userType" >> tempfile && mv tempfile UPP.db
+        grep -v "^$currentUser," UPP.db > tempfile && echo "$currentUser,$newPassword,$pin,$userType" >> tempfile && mv tempfile UPP.db
     else
         # For admin or self-password changes keep the existing logic
         grep -v "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,admin" >> "tempfile" && mv "tempfile" "UPP.db"
@@ -395,38 +395,36 @@ MostPopSimOverall() {
 
 # Ranking
 RankingOfUsers() {
-    tempFile="user_totals.tmp"
-    > "$tempFile"
+    temporaryTime="totalTimes.tmp" # Create a temporary file to hold each users total time.
+    > "$temporaryTime" # Create and/or clear the contents within the file
 
-    # Extract usernames and their total durations, then sum them.
-    grep "logged in" Usage.db | while read -r line; do
-        user=$(echo "$line" | cut -d' ' -f2,3)  # Adjust to capture full user identifier correctly.
-        duration=$(echo "$line" | grep -oE '[0-9]+ seconds' | cut -d' ' -f1)  # Ensure correct extraction of the duration.
+    grep "logged in" Usage.db | while read -r line; do # Find every line that has the words logged in Usage.db
+        user=$(echo "$line" | cut -d' ' -f2,3)  # Take the role (type) and name from the line
+        duration=$(echo "$line" | grep -oE '[0-9]+ seconds' | cut -d' ' -f1)  # Take the duration from the line by matching the given regex pattern
 
-        if [ -n "$duration" ]; then
-            # Check if user already has a total, update or initialize it.
-            if grep -q "^$user " "$tempFile"; then
-                # Extract existing total, add new duration.
-                existingTotal=$(grep "^$user " "$tempFile" | cut -d' ' -f3)
-                newTotal=$((existingTotal + duration))
-                # Replace the line with new total.
-                grep -v "^$user " "$tempFile" > "${tempFile}.tmp"
-                echo "$user $newTotal" >> "${tempFile}.tmp"
-                mv "${tempFile}.tmp" "$tempFile"
+        if [ -n "$duration" ]; then # If the duration is not empty
+            if grep -q "^$user " "$temporaryTime"; then # If the current user already has a duration total in the tmep file
+                existingTotal=$(grep "^$user " "$temporaryTime" | cut -d' ' -f3) # Take the existing total duration for this user
+                newTotal=$((existingTotal + duration)) # Add the new duration to that existing total
+                grep -v "^$user " "$temporaryTime" > "${temporaryTime}.tmp" # Remove the current line for the user from the temp file (duplicate)
+                echo "$user $newTotal" >> "${temporaryTime}.tmp" # Add the new total time for this user to the temp file
+                mv "${temporaryTime}.tmp" "$temporaryTime" # Replace the original temp file with the new one
             else
-                echo "$user $duration" >> "$tempFile"
+                # If the user doesn't have a total add them to the temp file with their current duration
+                echo "$user $duration" >> "$temporaryTime"
             fi
         fi
     done
 
     echo "Rankings are:"
-    # Sort and display results, ensuring numeric sorting by total duration.
-    sort -k3 -nr "$tempFile" | while read -r user total; do
-        echo "$user: $total seconds"
+    # Sort the temp file by the total duration (descending)
+    sort -k3 -nr "$temporaryTime" | while read -r user total; do
+        echo "The $user with a total time of $total seconds" # Output for the user
     done
 	
 	sleep 8
-    rm "$tempFile"
+    rm "$temporaryTime" # After showing the rankings remove the temp file
+    rm temp.tmp # After showing the rankings remove the temp file
 }
 
 simData() {
@@ -520,7 +518,7 @@ BYE() {
 
         case "$check" in
             Y)
-                # exitAnimation
+                exitAnimation
                 sleep 0.5
                 exit 0
                 ;;

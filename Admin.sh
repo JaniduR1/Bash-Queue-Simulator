@@ -4,11 +4,13 @@ source ./Funcutions.sh
 
 AdminMenu()
 {
+	clear
+	loadingAnimation
     clear
-	echo -e "\033[34m1 To add user\033[0m"
-	echo -e "\033[34m2 To delete user\033[0m"
-	echo -e "\033[34m3 To update a user password\033[0m"
-	echo -e "\033[34m4 To acess useage information\033[0m"
+	echo -e "\033[36m1 To add user\033[0m"
+	echo -e "\033[36m2 To delete user\033[0m"
+	echo -e "\033[36m3 To update a user password\033[0m"
+	echo -e "\033[36m4 To acess useage information\033[0m"
 
 	echo -e "\033[31m-------------------\033[0m"
 	echo -e "\033[31mBYE for exit\033[0m"

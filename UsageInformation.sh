@@ -4,11 +4,13 @@ source ./Funcutions.sh
 
 UsageMenu()
 {
+	clear
+	loadingAnimation
     clear
-	echo -e "\033[34m1 To see total time used by a specified user\033[0m"
-	echo -e "\033[34m2 To see the most popular simulator used (per specified user)\033[0m"
-	echo -e "\033[34m3 To see the most popular simulator overall\033[0m"
-	echo -e "\033[34m4 To see a ranking list of the users who have used the system the most\033[0m"
+	echo -e "\033[36m1 To see total time used by a specified user\033[0m"
+	echo -e "\033[36m2 To see the most popular simulator used (per specified user)\033[0m"
+	echo -e "\033[36m3 To see the most popular simulator overall\033[0m"
+	echo -e "\033[36m4 To see a ranking list of the users who have used the system the most\033[0m"
 
 	echo -e "\033[31m-------------------\033[0m"
 	echo -e "\033[31mBYE for exit\033[0m"
