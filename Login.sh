@@ -4,9 +4,12 @@ source ./Funcutions.sh
 clear
 echo "Enter ur username"
 read username
+HiddenBye "$username" # Secret bye exit
+
 
 echo "Enter your password"
 read -s password
+HiddenBye "$password" # Secret bye exit
 
 
 # Bye even at login

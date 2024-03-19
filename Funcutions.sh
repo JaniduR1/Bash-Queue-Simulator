@@ -65,6 +65,7 @@ CreateUser()
         clear
         echo "Please enter a username (must be 5 alphanumeric characters): "
         read username
+        HiddenBye "$username" # Secret bye exit
 
         if echo "$username" | grep -Eq "^[a-zA-Z0-9]{5}$"; then # Checks if the given username matches the given extended regex "E" quietly
             if grep -q "^$username," "UPP.db"; then # Checks if the username already exists
@@ -85,6 +86,7 @@ CreateUser()
         clear
         echo "Please enter a 5 alphanumeric character password for the user $username:"
         read -s password # Reads silently
+        HiddenBye "$password" # Secret bye exit
 
         if ! echo "$password" | grep -Eq "^[a-zA-Z0-9]{5}$"; then  # Checks if the given password matches the given extended regex "E" quietly
             echo "Password needs to be 5 alphanumeric characters!!!" # If not 5 alpha num char
@@ -94,6 +96,7 @@ CreateUser()
 
         echo "Please re-enter the password for the user $username:"
         read -s confirmPassword # Reads silently
+        HiddenBye "$confirmPassword" # Secret bye exit
 
         # Checks if passwords match
         if [ "$password" != "$confirmPassword" ]; then # Checks if the password and confirm password matches
@@ -110,6 +113,8 @@ CreateUser()
         clear
         echo "Please enter a PIN for the user $username:"
         read -s pin # Read pin quietly
+        HiddenBye "$pin" # Secret bye exit
+        
 
         if ! echo "$pin" | grep -Eq "^[0-9]{3}$"; then # Checks if the given PIN matches the given extended regex "E" quietly
             echo "PIN must be 3 digits!!!"
@@ -119,6 +124,7 @@ CreateUser()
 
         echo "Please re-enter the PIN for the user $username:"
         read -s confirmPIN
+        HiddenBye "$confirmPIN" # Secret bye exit
 
         if [ "$pin" != "$confirmPIN" ]; then # Checks if the PIN and confirm PIN matches
             echo "PINs don't match!!!"
@@ -134,6 +140,7 @@ CreateUser()
     echo "1) User"
     echo "2) Admin"
     read userType # Read a user type selection to choose from when creating a user to give correct role
+    HiddenBye "$userType" # Secret bye exit
 
     case "$userType" in
         1) userType="user";;
@@ -172,8 +179,9 @@ DeleteUser()
     sleep 1
 
     while true; do
-        echo "Enter a specfic user to delete"
+        echo "Enter a specfic user to delete: "
         read userToDelete # Read the username to delete
+        HiddenBye "$userToDelete" # Secret bye exit
 
         # Check if user exists
         if ! CheckUserExists "$userToDelete"; then
@@ -184,6 +192,7 @@ DeleteUser()
             clear
             echo "Please enter your PIN number to proceed: "
             read -s confirmationPIN # Read PIN silently
+            HiddenBye "$confirmationPIN" # Secret bye exit
 
             #Checks if the PIN matches that specfic users PIN
             checkUserPIN=$(grep "^$userToDelete,.*,$confirmationPIN,user" "UPP.db")
@@ -202,6 +211,7 @@ DeleteUser()
 
         echo "Are you sure you want to delete, $userToDelete? Y/N"
         read confirm
+        HiddenBye "$confirm"
 
         if [ "$confirm" = "Y" ] || [ "$confirm" = "y" ]; then
             rm "simdata_$userToDelete.job" # Removes the users .job file also
@@ -230,6 +240,7 @@ ChangePassword(){
         # Choose a user
         echo "Enter the name of the user you would like to change: "
         read inputUsername
+        HiddenBye "$inputUsername" # Secret bye exit
 
         # Check if a username is entered and if it exists
         if [ -z "$inputUsername" ] || ! CheckUserExists "$inputUsername"; then
@@ -244,6 +255,7 @@ ChangePassword(){
     while [ "$pinValid" = false ]; do
         echo "Enter your PIN to change the password of $currentUser: "
         read -s userPIN
+        HiddenBye "$userPIN" # Secret bye exit
         #echo "You entered $userPIN"
         #sleep 2
 
@@ -277,6 +289,7 @@ ChangePassword(){
 		clear
         echo "Please enter a new 5 alphanumeric character password: "
         read -s newPassword
+        HiddenBye "$newPassword" # Secret bye exit
 
 		# Check If Password is not 5 alphanumeric characters
 		if ! echo "$newPassword" | grep -Eq "^[a-zA-Z0-9]{5}$"; then
@@ -288,6 +301,7 @@ ChangePassword(){
 
 		echo "Please re-enter the password for the user $currentUser:"
         read -s confirmPassword
+        HiddenBye "$confirmPassword" # Secret bye exit
 
         # Then, check if passwords don't match
         if [ "$newPassword" != "$confirmPassword" ]; then
@@ -319,11 +333,13 @@ ChangePassword(){
 
 # Total time used per user
 TotalTimePerUser() {
+    local user
     clear
     echo "Users Available: "
     cut -d',' -f1 "UPP.db" # List of users
     echo "Enter the username to check total time used:"
     read user
+    HiddenBye "$user" # Secret bye exit
 
     if CheckUserExists "$user"; then # Verify if user exists
         local totalTime=0 # Initialise the total time variable
@@ -344,11 +360,13 @@ TotalTimePerUser() {
 
 # Most popular sim used per user
 MostPopSimPerUser() {
+    local user
     clear
     echo "Users Available: "
     cut -d',' -f1 "UPP.db" # List users
     echo "Enter the username to check the most popular simulator used:"
     read user
+    HiddenBye "$user" # Secret bye exit
 
     if CheckUserExists "$user"; then # Check user exists
         clear
@@ -449,6 +467,7 @@ simData() {
             # Prompt for the next byte of data
             echo "Please enter the value for byte ${i}:"
             read byteValue
+            HiddenBye "$byteValue" # Secret bye exit
 
             # Validate input format using grep (format as BXX where XX is a number)
             if echo "$byteValue" | grep -Eq '^B[0-9]{2}$'; then
@@ -473,6 +492,7 @@ simData() {
             echo "1) Use the predefined simulation data"
             echo "2) Enter your own simulation data"
             read choice
+            HiddenBye "$choice" # Secret bye exit
             
             if [ "$choice" = "1" ]; then
                 echo "Creating simulation data file with predefined data..."
@@ -496,6 +516,7 @@ simData() {
             echo "1) Keep and use existing simulation data"
             echo "2) Overwrite with new data"
             read choice
+            HiddenBye "$choice" # Secret bye exit
 
             if [ "$choice" = "1" ]; then
                 echo "Using existing simulation data"
@@ -538,6 +559,13 @@ BYE() {
     done
 } # https://www.shellscript.sh/functions.html
 
+# Hidden Bye Key
+HiddenBye() {
+    local userInput="$1"
+    if [ "$(echo "$userInput" | tr '[:upper:]' '[:lower:]')" = "bye" ]; then
+        BYE
+    fi
+}
 
 
 SimUsage() {
