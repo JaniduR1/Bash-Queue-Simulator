@@ -54,21 +54,22 @@ exitAnimation() {
 # Creating a user
 CreateUser()
 {
-    local username
+    local newUsername
     local password
     local pin
     local userType
+    local adminPIN
     clear
 
     ## Username Creation
     while true; do # To keep looping to ask for a username at every failed username input
         clear
         echo "Please enter a username (must be 5 alphanumeric characters): "
-        read username
-        HiddenBye "$username" # Secret bye exit
+        read newUsername
+        HiddenBye "$newUsername" # Secret bye exit
 
-        if echo "$username" | grep -Eq "^[a-zA-Z0-9]{5}$"; then # Checks if the given username matches the given extended regex "E" quietly
-            if grep -q "^$username," "UPP.db"; then # Checks if the username already exists
+        if echo "$newUsername" | grep -Eq "^[a-zA-Z0-9]{5}$"; then # Checks if the given username matches the given extended regex "E" quietly
+            if grep -iq "^$newUsername," "UPP.db"; then # Checks if the username already exists
                 echo "The given username already exists, please change it!!!" # Error for if the username exists
                 sleep 1.5
             else
@@ -84,7 +85,7 @@ CreateUser()
     ## Password Creation
     while true; do # To keep looping to ask for a password at every failed password input
         clear
-        echo "Please enter a 5 alphanumeric character password for the user $username:"
+        echo "Please enter a 5 alphanumeric character password for the user $newUsername:"
         read -s password # Reads silently
         HiddenBye "$password" # Secret bye exit
 
@@ -94,7 +95,7 @@ CreateUser()
             continue  # Loops back and asks for a valid password again
         fi
 
-        echo "Please re-enter the password for the user $username:"
+        echo "Please re-enter the password for the user $newUsername:"
         read -s confirmPassword # Reads silently
         HiddenBye "$confirmPassword" # Secret bye exit
 
@@ -111,7 +112,7 @@ CreateUser()
     ## PIN Creation
     while true; do # To keep looping to ask for a PIN at every failed PIN input
         clear
-        echo "Please enter a PIN for the user $username:"
+        echo "Please enter a PIN for the user $newUsername:"
         read -s pin # Read pin quietly
         HiddenBye "$pin" # Secret bye exit
         
@@ -122,7 +123,7 @@ CreateUser()
             continue # Loops back and asks for a valid PIN again
         fi
 
-        echo "Please re-enter the PIN for the user $username:"
+        echo "Please re-enter the PIN for the user $newUsername:"
         read -s confirmPIN
         HiddenBye "$confirmPIN" # Secret bye exit
 
@@ -136,7 +137,7 @@ CreateUser()
 
 
     clear
-    echo "Select the user type for $username:"
+    echo "Select the user type for $newUsername:"
     echo "1) User"
     echo "2) Admin"
     read userType # Read a user type selection to choose from when creating a user to give correct role
@@ -146,21 +147,38 @@ CreateUser()
         1) userType="user";;
         2) userType="admin";;
         *) 
-            echo "Invalid selection, setting $username as default 'user'"  # Default to "user" for an invalid input
+            echo "Invalid selection, setting $newUsername as default 'user'"  # Default to "user" for an invalid input
             sleep 2
             userType="user";;
     esac
 
-    echo "$username,$password,$pin,$userType" >> "UPP.db" # Append the new user to the UPP.db
-    echo "User $username created successfully" # Success message
-    sleep 1
-    return 0
+    if [ "$type" = "admin" ]; then
+        echo "Please enter your admin pin to create the $userType $newUsername: "
+        read -s adminPIN
+        HiddenBye "$adminPIN"
+
+        if grep -iq "^$username,.*,$adminPIN,admin$" "UPP.db"; then
+            echo "$newUsername,$password,$pin,$userType" >> "UPP.db" # Append the new user to the UPP.db
+            echo "User $newUsername created successfully" # Success
+            sleep 1
+            return 0
+        else
+            echo "Invalid PIN!! Aborting Operation"
+            sleep 1
+            return 1
+        fi
+    else
+        # If not admin
+        echo "No idea how you got this far..."
+        sleep 2
+        exit 0
+    fi
 }
 
 #Check if user exists
 CheckUserExists() {
     local searchUsername=$1 # Local variable for username to search for
-    if grep -q "^$searchUsername," "UPP.db"; then
+    if grep -iq "^$searchUsername," "UPP.db"; then
         return 0  # Successfully found
     else
         echo "That username doesn't exist"
@@ -214,9 +232,9 @@ DeleteUser()
         HiddenBye "$confirm"
 
         if [ "$confirm" = "Y" ] || [ "$confirm" = "y" ]; then
-            rm "simdata_$userToDelete.job" # Removes the users .job file also
+            rm "simdata_$userToDelete.job" > /dev/null # Removes the users .job file also
             # Take everything that doesn't match the user being deleted and move to a new file, then rename that new file to UPP.db
-            grep -v "^$userToDelete," "UPP.db" > "newfile" && mv "newfile" "UPP.db" # Remove the user entry and update the file
+            grep -iv "^$userToDelete," "UPP.db" > "newfile" && mv "newfile" "UPP.db" # Remove the user entry and update the file
             echo "User $userToDelete deleted"
             sleep 0.5
         else
@@ -262,7 +280,7 @@ ChangePassword(){
         # Check if the current user is an admin and if they are changing another users password or has entered a username
         if [ "$type" = "admin" ]; then
             # If there is an admin PIN with the given PIN
-            if grep -q "^$username,.*,$userPIN,admin" "UPP.db"; then # Check if the logged in admin pin is correct (matches their PIN in UPP.db)
+            if grep -iq "^$username,.*,$userPIN,admin" "UPP.db"; then # Check if the logged in admin pin is correct (matches their PIN in UPP.db)
                 echo "Valid PIN"
                 sleep 1
                 pinValid=true # Set the flag to true 
@@ -273,7 +291,7 @@ ChangePassword(){
             fi
 
         else  # Users changing password
-            if grep -q "^$currentUser,.*,$userPIN," "UPP.db"; then # Check if the PIN matches their own PIN
+            if grep -iq "^$currentUser,.*,$userPIN," "UPP.db"; then # Check if the PIN matches their own PIN
                 echo "Valid PIN"
                 sleep 1        
                 pinValid=true  # Change flag to true if valid PIN
@@ -318,13 +336,13 @@ ChangePassword(){
     # Update password in UPP.db
     if [ "$currentUser" != "$username" ] || [ "$type" != "admin" ]; then
         pin=$(grep "^$currentUser," UPP.db | cut -d',' -f3) # Extract the current PIN from UPP.db
-        userType=$(grep "^$currentUser," UPP.db | cut -d',' -f4) # Extract the user type from UPP.db
+        userType=$(grep -i "^$currentUser," UPP.db | cut -d',' -f4) # Extract the user type from UPP.db
         
         # Update UPP.db without the current user entry then add the updated entry with new password.
-        grep -v "^$currentUser," UPP.db > tempfile && echo "$currentUser,$newPassword,$pin,$userType" >> tempfile && mv tempfile UPP.db
+        grep -iv "^$currentUser," UPP.db > tempfile && echo "$currentUser,$newPassword,$pin,$userType" >> tempfile && mv tempfile UPP.db
     else
         # For admin or self-password changes keep the existing logic
-        grep -v "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,admin" >> "tempfile" && mv "tempfile" "UPP.db"
+        grep -iv "^$username," "UPP.db" > "tempfile" && echo "$username,$newPassword,$userPIN,admin" >> "tempfile" && mv "tempfile" "UPP.db"
     fi
     echo "Password for $currentUser has been changed"
     sleep 1
@@ -422,10 +440,10 @@ RankingOfUsers() {
         duration=$(echo "$line" | grep -oE '[0-9]+ seconds' | cut -d' ' -f1)  # Take the duration from the line by matching the given regex pattern
 
         if [ -n "$duration" ]; then # If the duration is not empty
-            if grep -q "^$user " "$temporaryTime"; then # If the current user already has a duration total in the tmep file
-                existingTotal=$(grep "^$user " "$temporaryTime" | cut -d' ' -f3) # Take the existing total duration for this user
+            if grep -iq "^$user " "$temporaryTime"; then # If the current user already has a duration total in the tmep file
+                existingTotal=$(grep -i "^$user " "$temporaryTime" | cut -d' ' -f3) # Take the existing total duration for this user
                 newTotal=$((existingTotal + duration)) # Add the new duration to that existing total
-                grep -v "^$user " "$temporaryTime" > "${temporaryTime}.tmp" # Remove the current line for the user from the temp file (duplicate)
+                grep -iv "^$user " "$temporaryTime" > "${temporaryTime}.tmp" # Remove the current line for the user from the temp file (duplicate)
                 echo "$user $newTotal" >> "${temporaryTime}.tmp" # Add the new total time for this user to the temp file
                 mv "${temporaryTime}.tmp" "$temporaryTime" # Replace the original temp file with the new one
             else
